@@ -67,10 +67,10 @@ The Meta-Controller handles **strategic regime decisions**, while Sub-Controller
 
 Markets are classified into four macro regimes:
 
-- 🟢 **Bull**
-- 🔴 **Bear**
-- ⚠️ **Crisis**
-- ➖ **Sideways**
+- **Bull**
+- **Bear**
+- **Crisis**
+- **Sideways**
 
 Each regime is assigned a **dedicated PPO trading agent trained on historical data specific to that environment**, allowing the system to learn regime-specific behaviors.
 
@@ -194,7 +194,7 @@ This makes the framework suitable for **risk-sensitive institutional portfolio m
 
 ---
 
-# Hyperparameters (Selected from Sweep)
+# Hyperparameters
 
 | Parameter | Value |
 |-----------|------|
@@ -218,7 +218,3 @@ Potential future improvements include:
 - LLM-assisted macro reasoning  
 - real-time deployment pipelines  
 - integration with alternative datasets  
-
----
-
-# Citation
