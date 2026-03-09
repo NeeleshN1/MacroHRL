@@ -205,7 +205,7 @@ This makes the framework suitable for **risk-sensitive institutional portfolio m
 | Meta-Controller Entropy | 0.02 |
 | Transaction Cost | 0.001 |
 
-These values were selected through a large hyperparameter sweep optimizing **annualized return under a max drawdown constraint (<10%)**.
+These values were selected through a large hyperparameter sweep optimizing for **annualized return and minimizing drawdowns**.
 
 ---
 
