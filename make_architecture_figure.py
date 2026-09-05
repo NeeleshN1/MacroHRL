@@ -125,6 +125,6 @@ ax.text(10.9, 7.1, 'HRL Framework', ha='center', fontsize=11,
 ax.text(6.5, 7.4, 'MacroHRL Architecture', ha='center', fontsize=13,
         fontweight='bold', color='#2C3E50')
 
-plt.savefig('./figures/fig7_architecture.png',
+plt.savefig('./figures/fig1_architecture.png',
             dpi=200, bbox_inches='tight', facecolor='white')
 print("Done.")

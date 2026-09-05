@@ -378,7 +378,8 @@ for r in range(4):
     c=rc.get(r,0)
     print(f"  {RNAMES[r]:8s}: {c:4d} days ({c/len(detected_reg)*100:.1f}%)")
 
-with open('./data/results_hrl.json','w') as f:
+os.makedirs('./results',exist_ok=True)
+with open('./results/results_hrl.json','w') as f:
     json.dump({nm:m for nm,m in rows},f,indent=2)
 
 # ── Figures ───────────────────────────────────────────────────────────────────
@@ -414,7 +415,7 @@ ax.set_title('MacroHRL vs. Baselines: Portfolio Value (2023–2025)',fontsize=13
 ax.set_xlabel('Date'); ax.set_ylabel('Portfolio Value (USD)')
 ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x,_:f'${x:,.0f}'))
 ax.grid(True,alpha=0.3); plt.tight_layout()
-plt.savefig('./figures/fig1_portfolio_values.png',dpi=150,bbox_inches='tight')
+plt.savefig('./figures/fig2_portfolio_values.png',dpi=150,bbox_inches='tight')
 plt.close()
 
 fig,ax=plt.subplots(figsize=(12,5))
@@ -427,7 +428,7 @@ ax.set_title('Portfolio Drawdown Comparison (2023–2025)',fontsize=13,fontweigh
 ax.set_xlabel('Date'); ax.set_ylabel('Drawdown (%)')
 ax.legend(fontsize=9,ncol=2); ax.grid(True,alpha=0.3)
 ax.axhline(0,color='black',linewidth=0.8); plt.tight_layout()
-plt.savefig('./figures/fig2_drawdown.png',dpi=150,bbox_inches='tight')
+plt.savefig('./figures/fig3_drawdown.png',dpi=150,bbox_inches='tight')
 plt.close()
 
 print("\nFigures saved.")

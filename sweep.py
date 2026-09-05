@@ -332,7 +332,8 @@ for i, combo in enumerate(subset):
         print(f"  Error: {e}")
 
 df = pd.DataFrame(results)
-df.to_csv('results_sweep.csv', index=False)
+os.makedirs('./results', exist_ok=True)
+df.to_csv('./results/sweep_results.csv', index=False)
 print("\nSweep complete. Results saved to results_sweep.csv")
 
 # Output Top 5

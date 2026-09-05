@@ -1,220 +1,116 @@
-# MacroHRL  
-## A Hierarchical Reinforcement Learning Framework for Risk-Aware Portfolio Management with Drawdown Minimization
+# MacroHRL
 
-**Authors:**  
-Neelesh Nayak, Peter Lian, Tony Xia  
-University of Waterloo  
+**A Hierarchical Reinforcement Learning Framework for Risk-Aware Portfolio Management with Drawdown Minimization**
 
----
+Neelesh Nayak, Peter Lian, Tony Xia — University of Waterloo
 
-# Overview
-
-**MacroHRL** is a hierarchical reinforcement learning framework designed for **risk-aware portfolio management**. Unlike traditional portfolio optimization methods that focus solely on maximizing returns, MacroHRL prioritizes:
-
-- 📉 Drawdown minimization  
-- 🛡️ Capital preservation  
-- 🔄 Regime-adaptive allocation  
-- ⚠️ Tail-risk suppression  
-
-The system uses a **two-level hierarchical architecture**:
-
-- A **Meta-Controller (PPO agent)** selects macroeconomic regimes quarterly  
-- Specialized **Sub-Controllers (PPO agents)** manage daily portfolio allocation  
-
-This design enables the system to adapt to changing macroeconomic conditions while maintaining strong risk control.
+📄 **Paper:** [`paper/MacroHRL_CUCAI2026.pdf`](paper/MacroHRL_CUCAI2026.pdf) (CUCAI 2026, paper id 34)
 
 ---
 
-# System Architecture
+## Overview
 
-Below is the MacroHRL framework pipeline:
+MacroHRL is a two-level hierarchical reinforcement learning framework for portfolio
+management that treats drawdown minimization as a primary design objective rather than
+a secondary constraint.
 
-![MacroHRL Architecture](figures/fig7_architecture.png)
+- **Meta-Controller** — a PPO agent that selects a market regime (Bull, Bear, Crisis,
+  Sideways) once per quarter from macroeconomic state.
+- **Sub-Controllers** — four PPO agents, one per regime, each trained only on that
+  regime's historical episodes, producing daily portfolio weights.
 
-The system consists of:
+Tail risk is penalized directly in the sub-controller reward via CVaR, which is what
+drives the drawdown reduction reported in the paper.
 
-**Macro Inputs**
-- CPI (inflation)
-- VIX (volatility index)
-- Yield Curve
+![Architecture](figures/fig1_architecture.png)
 
-**Processing**
-- Rule-based macro regime classifier
+## Method
 
-**Hierarchical RL Framework**
-- **Meta-Controller:** selects active regime policy quarterly  
-- **Sub-Controllers:** execute daily allocation decisions  
+**Sub-controller reward (Eq. 1 in the paper):**
 
-**Output**
-- Portfolio weight vector  
+$$R_k = r^p_k - c \sum_{i=1}^{N} |w_{k,i} - w_{k-1,i}| - \lambda \cdot \mathrm{CVaR}_\alpha(L_k)$$
 
----
+where $r^p_k$ is the daily portfolio return, $c$ the transaction cost, and $\lambda$ the
+risk-aversion coefficient on the CVaR of recent losses $L_k$.
 
-# Key Contributions
+**Regime classification** (priority-ordered rule set):
 
-## 1. Hierarchical Reinforcement Learning for Finance
+| Regime | Rule |
+|---|---|
+| Crisis | VIX > 30 **and** SPY 63-day drawdown < -10% |
+| Bear | CPI YoY > 5.5% (and not Crisis) |
+| Sideways | 20 ≤ VIX ≤ 30 **and** \|SPY 63-day drawdown\| < 8% |
+| Bull | all other periods |
 
-Portfolio management is formulated as a **Hierarchical Markov Decision Process (HMDP)**:
-
-- Long-term macro decision making  
-- Short-term tactical asset allocation  
-
-The Meta-Controller handles **strategic regime decisions**, while Sub-Controllers handle **daily portfolio execution**.
-
----
-
-## 2. Regime Specialization
-
-Markets are classified into four macro regimes:
-
-- **Bull**
-- **Bear**
-- **Crisis**
-- **Sideways**
-
-Each regime is assigned a **dedicated PPO trading agent trained on historical data specific to that environment**, allowing the system to learn regime-specific behaviors.
-
----
-
-## 3. Risk-Aware Reward Function
-
-Sub-Controllers optimize a **CVaR-penalized reward function**:
-
-\[
-R_k = r_k^p - c \sum |w_{k,i} - w_{k-1,i}| - \lambda \cdot CVaR_\alpha(L_k)
-\]
-
-Where:
-
-- \( r_k^p \) = portfolio return  
-- \( c \) = transaction cost  
-- \( \lambda \) = risk aversion coefficient  
-- \( CVaR \) = conditional value-at-risk of recent losses  
-
-This reward explicitly penalizes **tail risk**, encouraging strategies that **avoid catastrophic drawdowns**.
-
----
-
-# Dataset
-
-## Assets (Daily Data)
-
-Eight major ETFs are used for portfolio construction:
-
-- SPY — US equities  
-- QQQ — NASDAQ equities  
-- EFA — Developed markets  
-- EEM — Emerging markets  
-- TLT — Long-term treasury bonds  
-- HYG — High-yield corporate bonds  
-- GLD — Gold  
-- VNQ — Real estate  
-
----
-
-## Macroeconomic Indicators
-
-Macroeconomic signals used for regime detection:
-
-- **VIX** — market volatility  
-- **CPI** — inflation  
-- **Yield Curve** — economic expectations  
-
-Data is sourced from **FRED and Yahoo Finance**.
-
----
-
-## Time Period
-
-| Phase | Years |
-|------|------|
-| Training | 2010 – 2022 |
-| Testing (Out-of-Sample) | 2023 – 2025 |
-
----
-
-# Results
-
-## Portfolio Performance
-
-MacroHRL produces a significantly smoother equity curve compared to a traditional benchmark.
-
-![Portfolio Value Comparison](figures/fig1_portfolio_values.png)
-
----
-
-## Drawdown Comparison
-
-MacroHRL demonstrates strong downside protection.
-
-![Drawdown Comparison](figures/fig2_drawdown.png)
-
----
-
-# Performance Metrics (Out-of-Sample 2023–2025)
-
-| Strategy | Sharpe | Annual Return | Max Drawdown | Calmar |
-|-----------|--------|---------------|--------------|--------|
-| **MacroHRL (Selected)** | **1.753** | **28.07%** | **-9.90%** | **2.835** |
-| Buy & Hold SPY | 1.616 | 24.80% | -18.76% | 1.322 |
-
----
-
-# Key Insight
-
-MacroHRL achieves approximately:
-
-**~47% reduction in maximum drawdown compared to SPY**
-
-while maintaining strong risk-adjusted returns.
-
-This demonstrates that hierarchical RL can effectively balance:
-
-- return generation  
-- volatility control  
-- tail-risk suppression  
-
----
-
-# Why MacroHRL Matters
-
-Traditional strategies struggle during:
-
-- market regime transitions  
-- black swan events  
-- correlation breakdowns  
-
-MacroHRL addresses these challenges by:
-
-- separating **macro strategy** from **tactical execution**
-- learning **specialized regime policies**
-- explicitly optimizing **downside risk**
-
-This makes the framework suitable for **risk-sensitive institutional portfolio management**.
-
----
-
-# Hyperparameters
+**Selected hyperparameters** (Table I of the paper, from the sweep in `sweep.py`):
 
 | Parameter | Value |
-|-----------|------|
-| VIX Threshold (Crisis) | 30 |
-| Drawdown Threshold (Crisis) | -10% |
-| Bull Risk-Aversion λ | 0.05 |
-| Crisis Risk-Aversion λ | 0.30 |
-| Meta-Controller Entropy | 0.02 |
-| Transaction Cost | 0.001 |
+|---|---|
+| VIX threshold (Crisis) | 30 |
+| Drawdown threshold (Crisis) | -0.10 |
+| Bull risk-aversion $\lambda_{bull}$ | 0.05 |
+| Crisis risk-aversion $\lambda_{crisis}$ | 0.30 |
+| Meta-Controller entropy | 0.02 |
+| Transaction cost $c$ | 0.001 |
 
-These values were selected through a large hyperparameter sweep optimizing for **annualized return and minimizing drawdowns**.
+## Data
 
----
+- **Assets (daily close):** SPY, QQQ, EFA, EEM, TLT, HYG, GLD, VNQ — 2010–2025.
+- **Macro indicators:** VIX, CPI (YoY), Treasury yields — sourced from FRED and Yahoo Finance.
+- **Split:** train 2010–2022, test out-of-sample 2023–2025.
 
-# Future Work
+All inputs are committed under `data/` so every script runs without a data-download step.
 
-Potential future improvements include:
+## Results (out-of-sample, 2023–2025)
 
-- additional macroeconomic signals  
-- multi-agent portfolio coordination  
-- LLM-assisted macro reasoning  
-- real-time deployment pipelines  
-- integration with alternative datasets  
+| Strategy | Sharpe | Ann. Return | Max Drawdown | Calmar |
+|---|---|---|---|---|
+| **MacroHRL (selected)** | **1.753** | **28.07%** | **-9.90%** | **2.835** |
+| Buy-and-Hold SPY | 1.616 | 24.80% | -18.76% | 1.322 |
+
+MacroHRL cuts maximum drawdown roughly in half relative to SPY while improving
+annualized return — a Calmar ratio more than 2× the benchmark.
+
+| Portfolio value | Drawdown |
+|---|---|
+| ![Portfolio value](figures/fig2_portfolio_values.png) | ![Drawdown](figures/fig3_drawdown.png) |
+
+## Repository layout
+
+```
+train_backtest.py            Full HRL pipeline: trains sub-controllers + meta-controller,
+                             backtests 2023-2025, writes results/ and figures/
+sweep.py                     Hyperparameter sweep behind Table I (results/sweep_results.csv)
+make_architecture_figure.py  Regenerates figures/fig1_architecture.png
+data/                        Raw price and macro inputs
+figures/                     Figures used in the paper
+results/                     Backtest metrics and sweep output
+paper/                       Final CUCAI 2026 paper
+```
+
+## Reproducing
+
+```bash
+pip install -r requirements.txt
+
+python train_backtest.py            # main result + figures 2 and 3
+python sweep.py                     # hyperparameter sweep (long-running)
+python make_architecture_figure.py  # figure 1
+```
+
+Run all scripts from the repository root — they resolve `./data` and `./results`
+relative to the working directory. Seeds are fixed (`seed=42`), but exact PPO results
+still vary slightly across PyTorch/CPU versions.
+
+## Limitations
+
+- The out-of-sample window is a single ~3-year period; results are not a multi-regime
+  robustness study.
+- The regime classifier is rule-based, not learned; the Meta-Controller learns *which
+  specialist to deploy*, not the regime boundaries themselves.
+- Backtests model transaction costs only — no slippage, market impact, or borrow costs.
+
+## Future work
+
+Additional macro signals, multi-agent coordination between sub-controllers, LLM-assisted
+macro reasoning, and a real-time deployment pipeline.
