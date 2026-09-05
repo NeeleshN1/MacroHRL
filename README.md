@@ -1,10 +1,10 @@
 # MacroHRL
 
-**A Hierarchical Reinforcement Learning Framework for Risk-Aware Portfolio Management with Drawdown Minimization**
+**A Hierarchical Reinforcement Learning Framework for Risk-Aware Portfolio Management**
 
 Neelesh Nayak, Peter Lian, Tony Xia — University of Waterloo
 
-📄 **Paper:** [`paper/MacroHRL_CUCAI2026.pdf`](paper/MacroHRL_CUCAI2026.pdf) (CUCAI 2026, paper id 34)
+**Project Write Up:** [View the Project](https://cucai.ca/papers/34)
 
 ---
 
@@ -19,8 +19,7 @@ a secondary constraint.
 - **Sub-Controllers** — four PPO agents, one per regime, each trained only on that
   regime's historical episodes, producing daily portfolio weights.
 
-Tail risk is penalized directly in the sub-controller reward via CVaR, which is what
-drives the drawdown reduction reported in the paper.
+Tail risk is penalized directly in the sub-controller reward via CVaR.
 
 ![Architecture](figures/fig1_architecture.png)
 
@@ -42,24 +41,11 @@ risk-aversion coefficient on the CVaR of recent losses $L_k$.
 | Sideways | 20 ≤ VIX ≤ 30 **and** \|SPY 63-day drawdown\| < 8% |
 | Bull | all other periods |
 
-**Selected hyperparameters** (Table I of the paper, from the sweep in `sweep.py`):
-
-| Parameter | Value |
-|---|---|
-| VIX threshold (Crisis) | 30 |
-| Drawdown threshold (Crisis) | -0.10 |
-| Bull risk-aversion $\lambda_{bull}$ | 0.05 |
-| Crisis risk-aversion $\lambda_{crisis}$ | 0.30 |
-| Meta-Controller entropy | 0.02 |
-| Transaction cost $c$ | 0.001 |
-
 ## Data
 
 - **Assets (daily close):** SPY, QQQ, EFA, EEM, TLT, HYG, GLD, VNQ — 2010–2025.
 - **Macro indicators:** VIX, CPI (YoY), Treasury yields — sourced from FRED and Yahoo Finance.
 - **Split:** train 2010–2022, test out-of-sample 2023–2025.
-
-All inputs are committed under `data/` so every script runs without a data-download step.
 
 ## Results (out-of-sample, 2023–2025)
 
@@ -69,7 +55,7 @@ All inputs are committed under `data/` so every script runs without a data-downl
 | Buy-and-Hold SPY | 1.616 | 24.80% | -18.76% | 1.322 |
 
 MacroHRL cuts maximum drawdown roughly in half relative to SPY while improving
-annualized return — a Calmar ratio more than 2× the benchmark.
+annualized return - a Calmar ratio more than 2× the benchmark.
 
 | Portfolio value | Drawdown |
 |---|---|
@@ -81,11 +67,11 @@ annualized return — a Calmar ratio more than 2× the benchmark.
 train_backtest.py            Full HRL pipeline: trains sub-controllers + meta-controller,
                              backtests 2023-2025, writes results/ and figures/
 sweep.py                     Hyperparameter sweep behind Table I (results/sweep_results.csv)
-make_architecture_figure.py  Regenerates figures/fig1_architecture.png
+make_architecture_figure.py  Generates figures/fig1_architecture.png
 data/                        Raw price and macro inputs
 figures/                     Figures used in the paper
 results/                     Backtest metrics and sweep output
-paper/                       Final CUCAI 2026 paper
+paper/                       CUCAI Project Write Up
 ```
 
 ## Reproducing
@@ -94,7 +80,7 @@ paper/                       Final CUCAI 2026 paper
 pip install -r requirements.txt
 
 python train_backtest.py            # main result + figures 2 and 3
-python sweep.py                     # hyperparameter sweep (long-running)
+python sweep.py                     # hyperparameter sweep 
 python make_architecture_figure.py  # figure 1
 ```
 
@@ -108,7 +94,6 @@ still vary slightly across PyTorch/CPU versions.
   robustness study.
 - The regime classifier is rule-based, not learned; the Meta-Controller learns *which
   specialist to deploy*, not the regime boundaries themselves.
-- Backtests model transaction costs only — no slippage, market impact, or borrow costs.
 
 ## Future work
 
